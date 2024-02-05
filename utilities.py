@@ -31,4 +31,16 @@ def fromtxt2py(file_name):
 			data_dict['sigma_yaw_angle'].append(float(data[21]))
 			data_dict['satellite_num'] = (float(data[22]))
 		
-		return data_dict
+	return data_dict
+
+def unbounded(head):
+    '''функция снимает ограничения 0-360 с курсового угла, измеренного СНС'''
+    k = 0
+    course_un = [head[0], ]
+    for i in range(len(head) - 1):
+        if head[i + 1] - head[i] > 350:
+            k -= 1
+        if head[i + 1] - head[i] < -350:
+            k += 1
+        course_un.append(head[i + 1] + k * 360)
+    return course_un

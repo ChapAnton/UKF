@@ -43,7 +43,7 @@ class UKF:
         self.sigmas = self.__get_sigmas()
 
     def __get_sigmas(self):
-        # генерация сигма-точек c использованием разложения Холецкого
+        '''генерация сигма-точек c использованием разложения Холецкого'''
         ret = np.zeros((self.n_sig, self.n_dim))
         chol = (np.linalg.cholesky(self.p))
         tmp_mat = chol
@@ -58,15 +58,17 @@ class UKF:
         return ret.T
 
     def predict(self, *inputs):
-        # обсчет шага прогноза UKF
+        """
+        :param inputs: параметры ВС
+        """
+
         self.sigmas = self.__get_sigmas()
         sigmas_out = np.array(
             [self.iterate(x, self.timestep, inputs) for x in self.sigmas.T]).T
         x_out = np.zeros(self.n_dim)
 
         for i in range(self.n_dim):
-            # среднее значение представляет собой сумму
-            # взвешенных значений этой переменной для каждой сигма-точки
+            # среднее значение представляет собой сумму взвешенных значений этой переменной для каждой сигма-точки
             x_out[i] = sum((self.mean_weights[j] * sigmas_out[i][j]
                            for j in range(self.n_sig)))
 
@@ -78,7 +80,6 @@ class UKF:
             diff = np.atleast_2d(diff)
             p_out += self.covar_weights[i] * np.dot(diff.T, diff)
 
-        # добавление шума процесса
         p_out += self.timestep * self.q
 
         self.x = x_out
@@ -87,7 +88,6 @@ class UKF:
 
     def update(self, states, data, r_matrix):
         """
-        performs a measurement update
         :param states: список, содержащий индексы обновляемых состояний
         :param data: измерения обновляемых состояний
         :param r_matrix: матрица ошибок процесса
@@ -95,7 +95,6 @@ class UKF:
 
         num_states = len(states)
 
-        # обсчет сигма-точек только для обновляемых состояний
         sigmas_split = np.split(self.sigmas, self.n_dim)
         y = np.concatenate([sigmas_split[i] for i in states])
 
@@ -110,12 +109,10 @@ class UKF:
             for j in range(self.n_dim):
                 x_diff[j][i] -= self.x[j]
 
-        # вычисление ковариации измерений
         p_yy = np.zeros((num_states, num_states))
         for i, val in enumerate(np.array_split(y_diff, self.n_sig, 1)):
             p_yy += self.covar_weights[i] * val.dot(val.T)
 
-        # добавление шума измерений
         p_yy += r_matrix
         p_xy = np.zeros((self.n_dim, num_states))
         for i, val in enumerate(zip(np.array_split(y_diff, self.n_sig, 1), np.array_split(x_diff, self.n_sig, 1))):
@@ -129,12 +126,11 @@ class UKF:
         self.p -= np.dot(k, np.dot(p_yy, k.T))
 
     def get_state(self, index=-1):
-        # получение вектора состояния
         if index >= 0:
             return self.x[index]
         else:
             return self.x
 
     def get_covar(self):
-        # получение матрицы ковариации
         return self.p
+    
