@@ -39,7 +39,7 @@ def main():
         r = np.array(np.rad2deg([sigma_yaw_angle[i]]))
         state_estimator.update([0], yaw_angle_gnss[i], r)
         ckf.predict(ckf.x_kk, ckf.P_kk)
-        ckf.update(ckf.x_kk, ckf.P_kk, np.array([yaw_angle_gnss[i]]), 2 * r)
+        ckf.update(ckf.x_kk, ckf.P_kk, np.array([yaw_angle_gnss[i]]), r)
         #print(ckf.x_kk.shape)
         x_filter_array.append(ckf.x_kk.reshape(1))
     plt.ylim(-100, 20)

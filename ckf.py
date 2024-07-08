@@ -13,21 +13,15 @@ def hx_approx(x_k):
     :param x_k:
     :return:
     '''
-
-    len_effector_1 = 0.8  # r1
-    len_effector_2 = 0.2  # r2
-
-    # TODO: rewrite as a matrix mux
     return np.array([x_k[0]])
     
     
-class CKF(object):
+class CKF():
 
     def __init__(self, x_kk=None, P_kk=None, Q_approx = None, R_approx=None):
 
         self.x_kk = x_kk
         self.P_kk = P_kk
-
         self.Q_approx = Q_approx
         self.R_approx = R_approx
 
@@ -56,10 +50,7 @@ class CKF(object):
 
         P_kk1 = 0.5*(P_kk1 + P_kk1.T)
 
-        # TODO: Apply chol. and QR
-        U, S, Vdash = linalg.svd(P_kk1, full_matrices=True)
-
-        S_kk1 = 0.5 * dot((U + Vdash.T), np.sqrt(diag(S)))
+        S_kk1 = np.linalg.cholesky(P_kk1)#0.5 * dot((U + Vdash.T), np.sqrt(diag(S)))
 
         # matrix to hold cubature points
         Xi = kron(ones((1, self.num_points)), x_kk1) + dot(S_kk1, self.cubature_points)
